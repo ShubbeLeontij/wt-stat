@@ -1,4 +1,5 @@
 print("Configuring")
+import settings
 import model
 import time
 import threading
@@ -8,8 +9,10 @@ import stat_viewer
 import pynput
 
 
-def on_press(key):
-    if key == pynput.keyboard.Key.up:
+def on_press(key: pynput.keyboard.Key):
+    if key == settings.load_button:
+        load()
+    if key == settings.show_button:
         if model.DATA.currently_in_tab:
             model.DATA.set_state_color('green')
             model.DATA.delete_windows()
@@ -19,11 +22,9 @@ def on_press(key):
             stat_viewer.read()
             model.DATA.currently_in_tab = True
             model.DATA.set_state_color('purple')
-    if key == pynput.keyboard.Key.down:
-        load()
 
 
-def on_release(key):
+def on_release(key: pynput.keyboard.Key):
     return
 
 
@@ -34,15 +35,15 @@ def load():
         print("Failed to parse clog file")
     print("New battle, getting stat for " + str(len(model.DATA.get_players())) + " players")
     model.DATA.set_state_color('yellow')
-    #try:
+    # try:
     stat_getter.findstat()
-    #except:
-    #print("Failed to get stat")
+    # except:
+    # print("Failed to get stat")
     print("Found stat for " + str(len(model.DATA.get_players())) + " players")
     model.DATA.set_state_color('green')
 
 
-threads = [pynput.keyboard.Listener(on_press=on_press, on_release=on_release)]
+threads: list = [pynput.keyboard.Listener(on_press=on_press, on_release=on_release)]
 for thread in threads:
     thread.start()
 print("Running")

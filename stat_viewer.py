@@ -1,6 +1,6 @@
 import time
 import easyocr
-import numpy as np
+import numpy
 import pyautogui
 import difflib
 import tkinter
@@ -19,8 +19,10 @@ else:
 
 
 def read() -> None:
-    logstr: str = '\n' + str(time.time()) + '\n'
     model.DATA.init_windows()
+    if settings.ocr_logging_enabled:
+        with open('logs.txt', 'a') as file:
+            file.write('\n' + str(time.time()) + '\n')
     pyautogui.screenshot(region=model.DATA.INDENTS_BLUE).save("screen_blue.png")
     pyautogui.screenshot(region=model.DATA.INDENTS_RED).save("screen_red.png")
     result: list = []
@@ -28,35 +30,31 @@ def read() -> None:
         result += reader.readtext("screen_blue.png")
     if len(result) != 0:
         for player in (model.DATA.team_1 if model.DATA.host_player.team == '1' else model.DATA.team_2):
-            max_ratio = 0.0
-            best_item = result[0]
-            for item in result:
-                ratio = difflib.SequenceMatcher(None, player.name.split('@')[0], item[1]).ratio()
-                if max_ratio < ratio:
-                    max_ratio = ratio
-                    best_item = item
-            view(player, best_item[0])
-            logstr += player.name + ' ' + str(best_item[2]) + ' ' + str(max_ratio) + '\n'
+            find_best(player, result)
     result: list = []
     for reader in readers:
         result += reader.readtext("screen_red.png")
     if len(result) != 0:
         for player in (model.DATA.team_2 if model.DATA.host_player.team == '1' else model.DATA.team_1):
-            max_ratio = 0.0
-            best_item = result[0]
-            for item in result:
-                ratio = difflib.SequenceMatcher(None, player.name.split('@')[0], item[1]).ratio()
-                if max_ratio < ratio:
-                    max_ratio = ratio
-                    best_item = item
-            view(player, best_item[0])
-            logstr += player.name + ' ' + str(best_item[2]) + ' ' + str(max_ratio) + '\n'
-    with open('logs.txt', 'a') as file:
-        file.write(logstr)
+            find_best(player, result)
     model.DATA.show_windows()
 
 
-def view(player: model.Player, coords: np.array) -> None:
+def find_best(player: model.Player, result: list) -> None:
+    max_ratio = 0.0
+    best_item = result[0]
+    for item in result:
+        ratio = difflib.SequenceMatcher(None, player.name.split('@')[0], item[1]).ratio()  # this cuts @psn suffix
+        if max_ratio < ratio:
+            max_ratio = ratio
+            best_item = item
+    view(player, best_item[0])
+    if settings.ocr_logging_enabled:
+        with open('logs.txt', 'a') as file:
+            file.write(player.name + ' ' + str(best_item[2]) + ' ' + str(max_ratio) + '\n')
+
+
+def view(player: model.Player, coords: list) -> None:
     row: int = int(coords[0][1]) // 28
     winrate: str = player.get_stat(model.STAT.WINRATE)
     fighter_time: str = player.get_stat(model.STAT.TIME_FIGHTER)

@@ -1,4 +1,5 @@
 import enum
+from pynput import keyboard
 
 
 class Readers(enum.Enum):
@@ -24,3 +25,6 @@ readers: Readers = Readers.READER_CN_AND_RU
 lang: Languages = Languages.RU
 resolution: ScreenResolutions = ScreenResolutions.r2560x1440
 clog_path: str = "~/.config/WarThunder/.game_logs/"  # "~/.config/WarThunder/.game_logs/" is default for Linux
+load_button: keyboard.Key = keyboard.Key.down
+show_button: keyboard.Key = keyboard.Key.up
+ocr_logging_enabled: bool = True
