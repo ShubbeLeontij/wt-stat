@@ -26,6 +26,7 @@ def read() -> None:
     all_text: str = dexor(data).decode("utf-8", "ignore")
     current_text: str = all_text.split("Load mission")[-1]
     new_match_id: str = re.findall(r"sessionId:(\S+)", current_text)[0]
+    old_data: model.Data = model.DATA
     model.DATA = model.Data()
     model.DATA.diff_number = diff_obj[re.search(r"MISSION \S+ STARTED at difficulty (\w+)", current_text)[1]]
     for match in re.findall(r"onStateChanged\(\) MULP p\d+ n='(\S+)' \S+ t=(\d)", current_text):
@@ -33,6 +34,10 @@ def read() -> None:
             model.DATA.host_player = model.Player(match[0], match[1])
         else:
             model.DATA.add_player(match[0], match[1])
+            for player in old_data.get_players():
+                if player.name == match[0]:  # If player was in previous search, copy it
+                    model.DATA.get_player(match[0]).stat = player.stat
+                    model.DATA.get_player(match[0]).loaded = True
     if __name__ == "__main__":
         print("match id:", new_match_id, "difficulty:", model.DATA.diff_number)
         with open("logs.txt", "w") as f:

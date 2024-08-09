@@ -19,12 +19,14 @@ else:
 
 
 def read() -> None:
-    model.DATA.init_windows()
     if settings.ocr_logging_enabled:
         with open('logs.txt', 'a') as file:
             file.write('\n' + str(time.time()) + '\n')
-    pyautogui.screenshot(region=model.DATA.INDENTS_BLUE).save("screen_blue.png")
-    pyautogui.screenshot(region=model.DATA.INDENTS_RED).save("screen_red.png")
+    pyautogui.screenshot(region=(model.INDENTS[settings.resolution]["SCREENSHOT_BLUE_X"], model.INDENTS[settings.resolution]["Y_DEFAULT"],
+                                 model.INDENTS[settings.resolution]["SCREENSHOT_WIDTH"], model.INDENTS[settings.resolution]["SCREENSHOT_HEIGHT"])).save("screen_blue.png")
+    pyautogui.screenshot(region=(model.INDENTS[settings.resolution]["SCREENSHOT_RED_X"], model.INDENTS[settings.resolution]["Y_DEFAULT"],
+                         model.INDENTS[settings.resolution]["SCREENSHOT_WIDTH"], model.INDENTS[settings.resolution]["SCREENSHOT_HEIGHT"])).save("screen_red.png")
+    model.DATA.init_windows()
     result: list = []
     for reader in readers:
         result += reader.readtext("screen_blue.png")
@@ -48,19 +50,9 @@ def find_best(player: model.Player, result: list) -> None:
         if max_ratio < ratio:
             max_ratio = ratio
             best_item = item
-    view(player, best_item[0])
+    player.show_stat(row=int(best_item[0][0][1]) // model.ROW_HEIGHT)
     if settings.ocr_logging_enabled:
         with open('logs.txt', 'a') as file:
             file.write(player.name + ' ' + str(best_item[2]) + ' ' + str(max_ratio) + '\n')
 
 
-def view(player: model.Player, coords: list) -> None:
-    row: int = int(coords[0][1]) // 28
-    winrate: str = player.get_stat(model.STAT.WINRATE)
-    fighter_time: str = player.get_stat(model.STAT.TIME_FIGHTER)
-    if player.team == model.DATA.host_player.team:
-        tkinter.Label(model.DATA.blue_windows[model.STAT.WINRATE], text=winrate, bg=model.DATA.BG_COLOR, fg=model.get_winrate_color(winrate)).place(x=0, y=30 + row * 28)
-        tkinter.Label(model.DATA.blue_windows[model.STAT.TIME_FIGHTER], text=fighter_time, bg=model.DATA.BG_COLOR, fg=model.get_fighter_time_color(fighter_time)).place(x=0, y=30 + row * 28)
-    else:
-        tkinter.Label(model.DATA.red_windows[model.STAT.WINRATE], text=winrate, bg=model.DATA.BG_COLOR, fg=model.get_winrate_color(winrate)).place(x=0, y=30 + row * 28)
-        tkinter.Label(model.DATA.red_windows[model.STAT.TIME_FIGHTER], text=fighter_time, bg=model.DATA.BG_COLOR, fg=model.get_fighter_time_color(fighter_time)).place(x=0, y=30 + row * 28)

@@ -9,9 +9,21 @@ import stat_viewer
 import pynput
 
 
-def on_press(key: pynput.keyboard.Key):
+def on_press(key: pynput.keyboard.Key) -> None:
     if key == settings.load_button:
-        load()
+        try:
+            clog_reader.read()
+        except:
+            print("Failed to parse clog file")
+            return
+        print("New battle, getting stat for " + str(len(model.DATA.get_players())) + " players")
+        model.DATA.set_state_color('yellow')
+        # try:
+        stat_getter.findstat()
+        # except:
+        # print("Failed to get stat")
+        print("Found stat for " + str(len(model.DATA.get_players())) + " players")
+        model.DATA.set_state_color('green')
     if key == settings.show_button:
         if model.DATA.currently_in_tab:
             model.DATA.set_state_color('green')
@@ -24,23 +36,8 @@ def on_press(key: pynput.keyboard.Key):
             model.DATA.set_state_color('purple')
 
 
-def on_release(key: pynput.keyboard.Key):
+def on_release(key: pynput.keyboard.Key) -> None:
     return
-
-
-def load():
-    try:
-        clog_reader.read()
-    except:
-        print("Failed to parse clog file")
-    print("New battle, getting stat for " + str(len(model.DATA.get_players())) + " players")
-    model.DATA.set_state_color('yellow')
-    # try:
-    stat_getter.findstat()
-    # except:
-    # print("Failed to get stat")
-    print("Found stat for " + str(len(model.DATA.get_players())) + " players")
-    model.DATA.set_state_color('green')
 
 
 threads: list = [pynput.keyboard.Listener(on_press=on_press, on_release=on_release)]
