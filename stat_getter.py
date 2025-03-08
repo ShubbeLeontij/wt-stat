@@ -92,7 +92,7 @@ def findstat() -> None:
             if results[i][0].status_code == 429:
                 retry_list.append(i)
             if results[i][0].status_code == 403:
-                print("Got 403 code")
+                print("Got 403 code for " + url_start + results[i][1].name)
         new_futures = [(session.get(url_start + players[i].name), players[i]) for i in retry_list]
         new_results = [(future.result(), player) for future, player in new_futures]
         for i in range(len(new_results)):

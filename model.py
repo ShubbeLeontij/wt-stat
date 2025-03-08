@@ -148,8 +148,9 @@ def get_stat_window_geometry(stat: settings.STAT, blue_team: bool) -> str:
 
 
 class Player:
-    def __init__(self, name: str, team: str):
+    def __init__(self, name: str, uid: int, team: str):
         self.name: str = name
+        self.uid = uid
         self.team: str = team
         self.loaded: bool = False
         self.stat: dict = dict()
@@ -188,16 +189,16 @@ class Data:
         self.indicator_window.configure(background='red')
         self.indicator_window.update()
 
-    def add_player(self, name: str, team: str) -> None:
+    def add_player(self, name: str, uid: int, team: str) -> None:
         if name == self.host_player.name:
             self.host_player.team = team
         for player in self.get_players():
             if player.name == name:
                 return
         if team == '1':
-            self.team_1.append(Player(name, team))
+            self.team_1.append(Player(name, uid, team))
         else:
-            self.team_2.append(Player(name, team))
+            self.team_2.append(Player(name, uid, team))
 
     def get_players(self) -> list:
         return self.team_1 + self.team_2

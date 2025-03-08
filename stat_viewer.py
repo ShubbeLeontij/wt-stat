@@ -1,9 +1,7 @@
 import time
 import easyocr
-import numpy
 import pyautogui
 import difflib
-import tkinter
 import model
 import settings
 import warnings

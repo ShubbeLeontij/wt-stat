@@ -29,11 +29,12 @@ def read() -> None:
     old_data: model.Data = model.DATA
     model.DATA = model.Data()
     model.DATA.diff_number = diff_obj[re.search(r"MISSION \S+ STARTED at difficulty (\w+)", current_text)[1]]
-    for match in re.findall(r"onStateChanged\(\) MULP p\d+ n='(\S+)' \S+ t=(\d)", current_text):
+    print(current_text)
+    for match in re.findall(r"onStateChanged\(\) MULP pid:\d+ n:'(\S+)' \S+ t=(\d) \S+ uid=\d", current_text):
         if match[1] == '0':
-            model.DATA.host_player = model.Player(match[0], match[1])
+            model.DATA.host_player = model.Player(match[0], match[-1], match[1])
         else:
-            model.DATA.add_player(match[0], match[1])
+            model.DATA.add_player(match[0], match[-1], match[1])
             for player in old_data.get_players():
                 if player.name == match[0]:  # If player was in previous search, copy it
                     model.DATA.get_player(match[0]).stat = player.stat

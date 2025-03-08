@@ -31,9 +31,9 @@ class ScreenResolutions(enum.Enum):
 
 # HERE SETTINGS START
 
-chrome_version: int = 126
+chrome_version: int = 133
 readers: Readers = Readers.READER_CN_AND_RU
-lang: Languages = Languages.RU
+lang: Languages = Languages.EN
 resolution: ScreenResolutions = ScreenResolutions.r2560x1440
 clog_path: str = "~/.config/WarThunder/.game_logs/"  # "~/.config/WarThunder/.game_logs/" is default for Linux
 viewed_stat: list = [STAT.WINRATE, STAT.TIME_FIGHTER, STAT.TIME_ATTACKER, STAT.TIME_TANKS, STAT.TIME_ANTI_AIR, STAT.LEVEL]
