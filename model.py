@@ -158,6 +158,8 @@ class Player:
         self.name: str = name
         self.uid: int = uid
         self.team: str = team
+        self.slots: dict[str, dict[str, int]] = dict()
+        self.cur_row: int = -1
         self.loaded: bool = False
         self.stat: dict[settings.STAT, int] = dict()
         for stat in settings.viewed_stat:
@@ -170,6 +172,7 @@ class Player:
         return self.stat[stat]
 
     def show_stat(self, row: int) -> None:
+        self.cur_row = row
         root_dict: dict = data.blue_windows if self.team == data.host_player_team else data.red_windows
         for stat in settings.viewed_stat:
             value = self.get_stat(stat)

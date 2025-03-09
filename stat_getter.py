@@ -5,9 +5,18 @@ import model
 import settings
 import json
 
+ranking: list[dict[str, int]] | None = None
 
-def parse_stat(player: model.Player, stats) -> None:
-    player.set_stat(settings.STAT.LEVEL, 52)
+
+def get_level(exp: int) -> int:
+    for rank in ranking[::-1]:
+        if rank["experience"] < exp:
+            return rank["rank"]
+    return 0
+
+
+def parse_stat(player: model.Player, exp: int, stats) -> None:
+    player.set_stat(settings.STAT.LEVEL, get_level(exp))
     player.set_stat(settings.STAT.WINS, stats["victories"])
     player.set_stat(settings.STAT.BATTLES, stats["missionsComplete"])
     player.set_stat(settings.STAT.WINRATE, round(100 * int(player.get_stat(settings.STAT.WINS)) / int(player.get_stat(settings.STAT.BATTLES))))
@@ -19,13 +28,23 @@ def parse_stat(player: model.Player, stats) -> None:
 
 
 def findstat() -> None:
+    global ranking
+    if ranking is None:
+        res = requests.get("https://api.thunderinsights.dk/v1/general/rank/")
+        try:
+            ranking = json.loads(res.content)
+        except json.JSONDecodeError:
+            print("Wrong answer for ranking with code", res.status_code)
+            return
+
     for player in model.data.get_players_to_load():
-        url = "https://api.thunderinsights.dk/v1/users/direct/" + str(player.uid)
-        res = requests.get(url)
+        res = requests.get("https://api.thunderinsights.dk/v1/users/direct/" + str(player.uid))
         try:
             json_obj = json.loads(res.content)
-            assert json_obj["nick"] == player.name
-            parse_stat(player, json_obj["summary"]["pvp_played"][model.data.difficulty])
+            if json_obj["nick"] != player.name:
+                print(player.name, "can be replaced by", json_obj["nick"])
+            player.slots = json_obj["slots"]
+            parse_stat(player, json_obj["exp"], json_obj["summary"]["pvp_played"][model.data.difficulty])
             print("Got data for", player.name)
         except json.JSONDecodeError:
             print("Wrong answer for", player.name, "with code", res.status_code)
