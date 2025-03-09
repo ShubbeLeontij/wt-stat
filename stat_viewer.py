@@ -9,16 +9,16 @@ warnings.filterwarnings("ignore")
 
 
 if settings.readers == settings.readers.READER_RU:
-    readers = [easyocr.Reader(['ru', 'en'])]
+    readers = [easyocr.Reader(["ru", "en"])]
 elif settings.readers == settings.readers.READER_CN:
-    readers = [easyocr.Reader(['ch_sim', 'en'])]
+    readers = [easyocr.Reader(["ch_sim", "en"])]
 else:
-    readers = [easyocr.Reader(['ch_sim', 'en']), easyocr.Reader(['ru', 'en'])]
+    readers = [easyocr.Reader(["ch_sim", "en"]), easyocr.Reader(["ru", "en"])]
 
 
 def read() -> None:
     if settings.ocr_logging_enabled:
-        with open('logs.txt', 'a') as file:
+        with open("logs.txt", 'a') as file:
             file.write('\n' + str(time.time()) + '\n')
     pyautogui.screenshot(region=(model.INDENTS[settings.resolution]["SCREENSHOT_BLUE_X"], model.INDENTS[settings.resolution]["Y_DEFAULT"],
                                  model.INDENTS[settings.resolution]["SCREENSHOT_WIDTH"], model.INDENTS[settings.resolution]["SCREENSHOT_HEIGHT"])).save("screen_blue.png")
@@ -50,7 +50,7 @@ def find_best(player: model.Player, result) -> None:
             best_item = item
     player.show_stat(row=int(best_item[0][0][1]) // model.ROW_HEIGHT)
     if settings.ocr_logging_enabled:
-        with open('logs.txt', 'a') as file:
+        with open("logs.txt", 'a') as file:
             file.write(player.name + ' ' + str(best_item[2]) + ' ' + str(max_ratio) + '\n')
 
 
