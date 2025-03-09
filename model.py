@@ -2,7 +2,7 @@ import tkinter
 import settings
 
 ROW_HEIGHT = 28
-BG_COLOR = 'black'
+BG_COLOR = "black"
 INDENTS = \
 {
     settings.ScreenResolutions.r1920x1080:
@@ -90,54 +90,60 @@ INDENTS = \
 }
 
 
-def get_stat_color(stat: settings.STAT, value: str) -> str:
+def get_stat_color(stat: settings.STAT, value: int) -> str:
     if stat == settings.STAT.WINRATE:
-        if value == 'N/A':
-            return 'white'
-        percents: int = int(value[:-1])
-        if percents < 45:
-            return 'red'
-        if percents < 48:
-            return 'orange'
-        if percents < 52:
-            return 'yellow'
-        if percents < 55:
-            return 'green'
-        if percents < 60:
-            return 'cyan'
-        return 'purple'
+        if value == -1:
+            return "white"
+        if value < 45:
+            return "red"
+        if value < 48:
+            return "orange"
+        if value < 52:
+            return "yellow"
+        if value < 55:
+            return "green"
+        if value < 60:
+            return "cyan"
+        return "purple"
     if stat == settings.STAT.LEVEL:
-        if value == 'N/A' or value == "":
-            return 'white'
-        percents: int = int(value)
-        if percents < 5:
-            return 'red'
-        if percents < 20:
-            return 'orange'
-        if percents < 40:
-            return 'yellow'
-        if percents < 60:
-            return 'green'
-        if percents < 100:
-            return 'cyan'
-        return 'purple'
+        if value == -1:
+            return "white"
+        if value < 5:
+            return "red"
+        if value < 20:
+            return "orange"
+        if value < 40:
+            return "yellow"
+        if value < 60:
+            return "green"
+        if value < 100:
+            return "cyan"
+        return "purple"
     if stat == settings.STAT.TIME_FIGHTER or stat == settings.STAT.TIME_ATTACKER or stat == settings.STAT.TIME_TANKS or stat == settings.STAT.TIME_ANTI_AIR:
-        if value == 'N/A':
-            return 'white'
-        index: int = value.find("д" if settings.lang == settings.Languages.RU else "d")
-        if index == -1:  # Less than a day
-            if value[:value.find("ч" if settings.lang == settings.Languages.RU else "h")] == "0":  # Less than an hour
-                return 'red'
-            return 'orange'
-        days: int = int(value[:index])
-        if days < 5:
-            return 'yellow'
-        if days < 15:
-            return 'green'
-        if days < 50:
-            return 'cyan'
-        return 'purple'
-    return 'white'
+        if value == -1:
+            return "white"
+        if value < 3600:
+            return "red"
+        if value < 3600 * 24:
+            return "orange"
+        if value < 3600 * 24 * 5:
+            return "yellow"
+        if value < 3600 * 24 * 15:
+            return "green"
+        if value < 3600 * 24 * 50:
+            return "cyan"
+        return "purple"
+    return "white"
+
+
+def format_time(value: int) -> str:
+    if value == -1:
+        return "N/A"
+    if value < 3600:
+        return str(round(value / 60)) + "m"
+    if value < 3600 * 24:
+        return str(round(value / 3600)) + "h"
+    return str(round(value / 3600 / 24)) + "d"
 
 
 def get_stat_window_geometry(stat: settings.STAT, blue_team: bool) -> str:
@@ -150,60 +156,62 @@ def get_stat_window_geometry(stat: settings.STAT, blue_team: bool) -> str:
 class Player:
     def __init__(self, name: str, uid: int, team: str):
         self.name: str = name
-        self.uid = uid
+        self.uid: int = uid
         self.team: str = team
         self.loaded: bool = False
-        self.stat: dict = dict()
+        self.stat: dict[settings.STAT, int] = dict()
         for stat in settings.viewed_stat:
-            self.stat[stat] = "N/A"
+            self.stat[stat] = -1
 
-    def set_stat(self, stat: settings.STAT, value: str) -> None:
+    def set_stat(self, stat: settings.STAT, value: int) -> None:
         self.stat[stat] = value
 
-    def get_stat(self, stat: settings.STAT) -> str:
+    def get_stat(self, stat: settings.STAT) -> int:
         return self.stat[stat]
 
     def show_stat(self, row: int) -> None:
-        root_dict: dict = DATA.blue_windows if self.team == DATA.host_player.team else DATA.red_windows
+        root_dict: dict = data.blue_windows if self.team == data.host_player_team else data.red_windows
         for stat in settings.viewed_stat:
             value = self.get_stat(stat)
             color = get_stat_color(stat, value)
-            value.replace("мин", "м")
-            tkinter.Label(root_dict[stat], text=value, bg=BG_COLOR, fg=color).place(x=0, y=30 + row * ROW_HEIGHT)
+            if stat == settings.STAT.TIME_FIGHTER or stat == settings.STAT.TIME_ATTACKER or stat == settings.STAT.TIME_TANKS or stat == settings.STAT.TIME_ANTI_AIR:
+                label: str = format_time(value)
+            else:
+                label: str = str(value)
+            tkinter.Label(root_dict[stat], text=label, bg=BG_COLOR, fg=color).place(x=0, y=30 + row * ROW_HEIGHT)
 
 
 class Data:
     def __init__(self):
-        self.host_player = None
-        self.team_1 = []
-        self.team_2 = []
-        self.diff_number = -1
-        self.currently_in_tab = False
-        self.blue_windows = dict()
-        self.red_windows = dict()
-        self.indicator_window = tkinter.Tk()
+        self.host_player_id: int = -1
+        self.host_player_team: int = -1
+        self.team_1: list[Player | None] = []
+        self.team_2: list[Player | None] = []
+        self.difficulty: str = ""
+        self.currently_in_tab: bool = False
+        self.blue_windows: dict[settings.STAT, tkinter.Tk] = dict()
+        self.red_windows: dict[settings.STAT, tkinter.Tk] = dict()
+        self.indicator_window: tkinter.Tk = tkinter.Tk()
         width, height = tuple(map(int, settings.resolution.value.split('x')))
         self.indicator_window.geometry("5x40+" + str(width - 5) + "+" + str(height - 40))
         self.indicator_window.resizable(False, False)
         self.indicator_window.overrideredirect(True)
-        self.indicator_window.configure(background='red')
+        self.indicator_window.configure(background="red")
         self.indicator_window.update()
 
     def add_player(self, name: str, uid: int, team: str) -> None:
-        if name == self.host_player.name:
-            self.host_player.team = team
         for player in self.get_players():
-            if player.name == name:
+            if player.uid == uid:
                 return
         if team == '1':
             self.team_1.append(Player(name, uid, team))
         else:
             self.team_2.append(Player(name, uid, team))
 
-    def get_players(self) -> list:
+    def get_players(self) -> list[Player]:
         return self.team_1 + self.team_2
 
-    def get_players_to_load(self) -> list:
+    def get_players_to_load(self) -> list[Player]:
         result: list = []
         for player in self.get_players():
             if not player.loaded:
@@ -226,7 +234,7 @@ class Data:
             self.blue_windows[stat].wait_visibility(self.blue_windows[stat])
             self.blue_windows[stat].wm_attributes("-alpha", 0.5)
             self.blue_windows[stat].configure(background=BG_COLOR)
-            tkinter.Label(self.blue_windows[stat], text=stat.value, bg=BG_COLOR, fg='white').place(x=0, y=0)
+            tkinter.Label(self.blue_windows[stat], text=stat.value, bg=BG_COLOR, fg="white").place(x=0, y=0)
 
             self.red_windows[stat] = tkinter.Tk()
             self.red_windows[stat].geometry(get_stat_window_geometry(stat, False))
@@ -235,7 +243,7 @@ class Data:
             self.red_windows[stat].wait_visibility(self.red_windows[stat])
             self.red_windows[stat].wm_attributes("-alpha", 0.5)
             self.red_windows[stat].configure(background=BG_COLOR)
-            tkinter.Label(self.red_windows[stat], text=stat.value, bg=BG_COLOR, fg='white').place(x=0, y=0)
+            tkinter.Label(self.red_windows[stat], text=stat.value, bg=BG_COLOR, fg="white").place(x=0, y=0)
 
     def show_windows(self) -> None:
         for stat in settings.viewed_stat:
@@ -261,4 +269,4 @@ class Data:
             pass
 
 
-DATA: Data = Data()
+data: Data = Data()
